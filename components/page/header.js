@@ -39,7 +39,9 @@ const Header = () => {
                   color="gray.400"
                   sx={{ display: "inline", fontSize: "0.75em" }}
                 >
-                  {process.env.CHAIN_NAME && <>[{process.env.CHAIN_NAME}]</>}
+                  {process.env.NEXT_PUBLIC_CHAIN_NAME && (
+                    <>[{process.env.NEXT_PUBLIC_CHAIN_NAME}]</>
+                  )}
                 </Text>{" "}
                 Minter
               </Heading>

@@ -2,7 +2,7 @@ import { ethers } from "ethers"
 // Set provider for pre-render operations where no wallet is present.
 // let provider = new ethers.providers.JsonRpcProvider(atob(ETH_NODE))
 
-export const chainID = process.env.CHAIN_ID ? process.env.CHAIN_ID : 4
+export const chainID = process.env.NEXT_PUBliC_CHAIN_ID ? process.env.NEXT_PUBLIC_CHAIN_ID : 4
 console.log("Chain ID: ", chainID)
 export let web3 = new ethers.providers.InfuraProvider(
   chainID === 1 ? "homestead" : "rinkeby",

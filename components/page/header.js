@@ -8,6 +8,7 @@ import { Box, Flex, LinkBox, LinkOverlay } from "@chakra-ui/layout";
 import { useWeb3 } from "../../contexts/useWeb3";
 import { useRouter } from "next/router";
 import UserAddress from "./wallet";
+import { chainID } from "../../utils/ethers";
 
 const Header = () => {
   const router = useRouter();
@@ -39,9 +40,8 @@ const Header = () => {
                   color="gray.400"
                   sx={{ display: "inline", fontSize: "0.75em" }}
                 >
-                  {process.env.NEXT_PUBLIC_CHAIN_NAME && (
-                    <>[{process.env.NEXT_PUBLIC_CHAIN_NAME}]</>
-                  )}
+                  {chainID === 1 && '[mainnet]'}
+                  {chainID === 4 && '[rinkeby]'}
                 </Text>{" "}
                 Minter
               </Heading>

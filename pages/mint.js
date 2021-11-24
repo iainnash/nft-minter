@@ -32,8 +32,7 @@ import { useAlerts } from "../contexts/useAlerts";
 import { useRouter } from "next/router";
 import { useDropzone } from "react-dropzone";
 import { bytesToSize } from "../utils/helpers";
-
-const token = process.env.NFT_STORAGE_TOKEN;
+import { FileUploader } from "../components/fileuploader";
   
 
 import Head from "next/head";
@@ -43,39 +42,7 @@ import { generateSHA256FileHash } from "../utils/hash";
 export default function Home() {
   const router = useRouter();
   const { addAlert, watchTx } = useAlerts();
-  const [files, setFiles] = useState([]);
-  const { acceptedFiles, getRootProps, fileRejections, getInputProps } =
-    useDropzone({
-      accept: "image/*",
-      maxFiles: 1,
-      onDrop: (acceptedFiles) => {
-        setFiles(
-          acceptedFiles.map((file) =>
-            Object.assign(file, {
-              preview: URL.createObjectURL(file),
-            })
-          )
-        );
-      },
-    });
-  const {
-    acceptedFiles: acceptedMediaFiles,
-    getRootProps: getRootMediaProps,
-    fileRejections: fileMediaRejections,
-    getInputProps: getInputMediaProps,
-  } = useDropzone({
-    accept: "*/*",
-    maxFiles: 1,
-    onDrop: (acceptedFiles) => {
-      setFiles(
-        acceptedFiles.map((file) =>
-          Object.assign(file, {
-            preview: URL.createObjectURL(file),
-          })
-        )
-      );
-    },
-  });
+  
   const cardBgColor = useColorModeValue("white", "gray.700");
 
   const [name, setName] = useState("");
@@ -83,76 +50,9 @@ export default function Home() {
   const [desc, setDesc] = useState("");
   const [edition, setEdition] = useState("");
   const [royalty, setRoyalty] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [mediaUploading, setMediaUploading] = useState(false);
-  const [fileHash, setFileHash] = useState(false);
-  const [fileMediaHash, setFileMediaHash] = useState(false);
 
-  useEffect(() => {
-    if (fileRejections[0]) {
-      addAlert(
-        "fail",
-        fileRejections[fileRejections.length - 1].errors[0].message
-      );
-    }
-  }, [fileRejections]);
-
-  useEffect(() => {
-    if (fileMediaRejections[0]) {
-      addAlert(
-        "fail",
-        fileMediaRejections[fileRejections.length - 1].errors[0].message
-      );
-    }
-  }, [fileMediaRejections]);
-
-  useEffect(async () => {
-    if (acceptedFiles[0]) {
-      console.log(acceptedFiles[acceptedFiles.length - 1]);
-      setUploading(true);
-
-      // var data = new FormData();
-      // data.append("file", acceptedFiles[acceptedFiles.length - 1]);
-
-      const image = await fetch("https://api.nft.storage/upload", {
-        method: "POST",
-        headers: new Headers({ Authorization: `Bearer ${token}` }),
-        body: acceptedFiles[acceptedFiles.length - 1],
-      }).then((res) => res.json());
-      console.log(image);
-      setFileHash(image.value.cid);
-      setUploading(false);
-      console.log(image);
-    }
-  }, [acceptedFiles]);
-
-  useEffect(async () => {
-    if (acceptedMediaFiles[0]) {
-      console.log(acceptedMediaFiles[acceptedMediaFiles.length - 1]);
-      setUploading(true);
-
-      // var data = new FormData();
-      // const lastFile = acceptedMediaFiles[acceptedFiles.length - 1];
-      // data.append("file", lastFile);
-
-      const image = await fetch("https://api.nft.storage/upload", {
-        method: "POST",
-        headers: new Headers({ Authorization: `Bearer ${token}` }),
-        body: acceptedMediaFiles[acceptedMediaFiles.length - 1],
-      }).then((res) => res.json());
-      setFileMediaHash(image.value.cid);
-      setMediaUploading(false);
-      console.log(image);
-    }
-  }, [acceptedFiles]);
-
-  useEffect(
-    () => () => {
-      // Make sure to revoke the data uris to avoid memory leaks
-      files.forEach((file) => URL.revokeObjectURL(file.preview));
-    },
-    [files]
-  );
+  const [animationFile, setAnimationFile] = useState(undefined);
+  const [imageFile, setImageFile] = useState(undefined);
 
   const validateInfo = () => {
     if (name === "") return true;
@@ -160,15 +60,19 @@ export default function Home() {
   };
 
   const mint = async () => {
-    const animURL = fileMediaHash ? `ipfs://${fileMediaHash}` : "";
-    const animHash = acceptedMediaFiles.length
+    if (!imageFile) {
+      throw new Error('no image');
+    }
+    console.log({imageFile, animationFile})
+    const animURL = animationFile ? `ipfs://${animationFile.hash}` : "";
+    const animHash = animationFile
       ? await generateSHA256FileHash(
-          acceptedMediaFiles[acceptedMediaFiles.length - 1]
+          animationFile.file
         )
       : "0x0000000000000000000000000000000000000000000000000000000000000000";
-    const imgURL = `ipfs://${fileHash}`;
+    const imgURL = `ipfs://${imageFile.hash}`;
     const imgHash = await generateSHA256FileHash(
-      acceptedFiles[acceptedFiles.length - 1]
+     imageFile.file 
     );
 
     console.log({
@@ -289,144 +193,8 @@ export default function Home() {
             </NumberInput>
           </FormControl>
         </Box>
-        <Box
-          mt="5"
-          w="100%"
-          bg={cardBgColor}
-          shadow="xl"
-          borderRadius="2xl"
-          p={8}
-        >
-          <Flex alignItems="center" justifyContent="space-between" mb="2">
-            <Heading size="md">Image</Heading>
-            {uploading || fileHash ? (
-              <CloseButton onClick={() => setFileHash(false)} />
-            ) : null}
-          </Flex>
-          {uploading || fileHash ? (
-            <Flex w="full" justifyContent="space-between">
-              <Box>
-                <Text>
-                  <b>File:</b> {files[acceptedFiles.length - 1].path}{" "}
-                </Text>
-                <Text>
-                  <b>Size:</b>{" "}
-                  {bytesToSize(files[acceptedFiles.length - 1].size)}
-                </Text>
-                <Text>
-                  <b>Status:</b>{" "}
-                  {uploading ? (
-                    "Uploading..."
-                  ) : (
-                    <Link
-                      href={`https://${fileHash}.ipfs.dweb.link/`}
-                      isExternal
-                    >
-                      Uploaded <ExternalLinkIcon mx="2px" />
-                    </Link>
-                  )}{" "}
-                </Text>{" "}
-              </Box>
-              <Image src={files[acceptedFiles.length - 1].preview} maxW={350} />
-            </Flex>
-          ) : (
-            <Box
-              as={"div"}
-              w="100%"
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                padding: "60px 20px",
-                borderWidth: 2,
-                borderRadius: 2,
-                borderColor: "#eeeeee",
-                borderStyle: "dashed",
-                backgroundColor: "#fafafa",
-                color: "#bdbdbd",
-                outline: "none",
-                transition: "border .24s ease-in-out",
-              }}
-              {...getRootProps({ className: "dropzone" })}
-            >
-              <input {...getInputProps()} />
-              <p>{`Drag 'n' drop a file here, or click to select a file`}</p>
-            </Box>
-          )}
-        </Box>
-        <Box
-          mt="5"
-          w="100%"
-          bg={cardBgColor}
-          shadow="xl"
-          borderRadius="2xl"
-          p={8}
-        >
-          <Flex alignItems="center" justifyContent="space-between" mb="2">
-            <Heading size="md">Animation</Heading>
-            {mediaUploading || fileMediaHash ? (
-              <CloseButton onClick={() => setFileMediaHash(false)} />
-            ) : null}
-          </Flex>
-          {mediaUploading || fileMediaHash ? (
-            <Flex w="full" justifyContent="space-between">
-              <Box>
-                <Text>
-                  <b>File:</b>{" "}
-                  {acceptedMediaFiles[acceptedMediaFiles.length - 1].path}{" "}
-                </Text>
-                <Text>
-                  <b>Size:</b>{" "}
-                  {bytesToSize(
-                    acceptedMediaFiles[acceptedMediaFiles.length - 1].size
-                  )}
-                </Text>
-                <Text>
-                  <b>Status:</b>{" "}
-                  {mediaUploading ? (
-                    "Uploading..."
-                  ) : (
-                    <Link
-                      href={`https://${fileMediaHash}.ipfs.dweb.link/`}
-                      isExternal
-                    >
-                      Uploaded <ExternalLinkIcon mx="2px" />
-                    </Link>
-                  )}{" "}
-                </Text>{" "}
-              </Box>
-              <Image
-                src={acceptedMediaFiles[acceptedMediaFiles.length - 1].preview}
-                maxW={350}
-              />
-            </Flex>
-          ) : (
-            <Box
-              as={"div"}
-              w="100%"
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                padding: "60px 20px",
-                borderWidth: 2,
-                borderRadius: 2,
-                borderColor: "#eeeeee",
-                borderStyle: "dashed",
-                backgroundColor: "#fafafa",
-                color: "#bdbdbd",
-                outline: "none",
-                transition: "border .24s ease-in-out",
-              }}
-              {...getRootProps({ className: "dropzone" })}
-            >
-              <input {...getInputProps()} />
-              <p>{`Drag 'n' drop a file here, or click to select a file`}</p>
-            </Box>
-          )}
-        </Box>
+        <FileUploader title="Image" accept="image/*" onUpload={setImageFile} />
+        <FileUploader title="Animation" onUpload={setAnimationFile} />
         <Flex mt="3" justifyContent="space-between">
           <Button
             isDisabled={validateInfo()}

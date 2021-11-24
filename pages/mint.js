@@ -33,8 +33,8 @@ import { useRouter } from "next/router";
 import { useDropzone } from "react-dropzone";
 import { bytesToSize } from "../utils/helpers";
 
-const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweEYyODEzMDVkN0YzOTU1ODJkMDNGNGMzOUZhODg5ODZjNzZGMTRDMTIiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTYzMTgzMzg2Njg4NSwibmFtZSI6Ikxld2lzIn0._s5gV6xaMSinAfqQWfqqkJwX_InW8v_g21ozomLf8D4";
+const token = process.env.NFT_STORAGE_TOKEN;
+  
 
 import Head from "next/head";
 import Page from "../components/page";

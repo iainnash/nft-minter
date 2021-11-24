@@ -34,7 +34,7 @@ const PurchaseList = ({ address }) => {
     <Box>
       <List>
         {purchaseList.results?.map((result) => (
-          <ListItem>
+          <ListItem key={result.mintTransferEvent.transactionHash}>
             Minted by <em><AddressView address={result.minter} /></em> at{" "}
             {dateFormatter.format(new Date(result.mintTransferEvent.blockTimestamp))}
           </ListItem>
@@ -50,11 +50,14 @@ const Purchase = () => {
   const [collection, setCollection] = useState();
 
   useEffect(async () => {
-    if (router.isReady) {
+    async function fetchData() {
       const data = await fetchCollectionAtAddress(router.query.address);
       setCollection(data);
     }
-  }, [router.isReady]);
+    if (router.isReady) {
+      fetchData();
+    }
+  }, [router]);
 
   const purchase = async () => {
     await purchaseEdition(collection?.address, collection?.salePrice);

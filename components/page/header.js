@@ -39,7 +39,7 @@ const Header = () => {
                   color="gray.400"
                   sx={{ display: "inline", fontSize: "0.75em" }}
                 >
-                  [rinkeby]
+                  {process.env.CHAIN_NAME && <>[{process.env.CHAIN_NAME}]</>}
                 </Text>{" "}
                 Minter
               </Heading>

@@ -48,6 +48,8 @@ const Hero = ({}) => {
           mb={{ base: 2, sm: 0 }}
           size="lg"
           cursor="pointer"
+          href="https://github.com/ourzora/nft-editions"
+          target="_blank"
         >
           Learn more
         </Button>

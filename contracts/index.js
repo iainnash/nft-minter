@@ -1,15 +1,12 @@
-import usdcInfo from "./usdc"
-import zoraMinterABI from "./zoraMinter.json"
-import zoraNFTABI from "./zoraNFT.json"
+import zoraMinterDeployment from "@zoralabs/nft-editions-contracts/deployments/rinkeby/SingleEditionMintableCreator.json";
+import zoraNFTDeployment from "@zoralabs/nft-editions-contracts/deployments/rinkeby/SingleEditionMintable.json";
 
 export const zoraMinter = {
-  abi: zoraMinterABI,
-  1: "0xEf7a8fF7FC585FA1Fe3062455B628bfC657e2cD5",
-  4: "0x5d6E1357Acc8BF654979f3b24fdef8C5549A491e"
-}
+  abi: zoraMinterDeployment.abi,
+  1: "0x91A8713155758d410DFAc33a63E193AE3E89F909",
+  4: "0x85FaDB8Debc0CED38d0647329fC09143d01Af660",
+};
 
 export const zoraNFT = {
-  abi: zoraNFTABI
-}
-
-export const usdc = usdcInfo
+  abi: zoraNFTDeployment.abi,
+};

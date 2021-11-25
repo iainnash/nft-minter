@@ -1,26 +1,11 @@
 import React, { useEffect, useState } from "react";
 import {
-  Grid,
-  Divider,
   Flex,
   Box,
   Heading,
   Text,
-  Center,
   Image,
-  Input,
-  InputRightAddon,
-  InputGroup,
-  Textarea,
   CloseButton,
-  Button,
-  FormControl,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  FormLabel,
   Link,
 } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
@@ -54,9 +39,11 @@ export const FileUploader = ({ onUpload, title, accept = undefined }) => {
   const [uploading, setUploading] = useState();
   const [files, setFiles] = useState([]);
 
+  const lastFile = files[acceptedFiles.length - 1];
+
   useEffect(() => {
     if (files[files.length - 1]) {
-      onUpload({ file: files[files.length - 1], hash: fileHash });
+      onUpload({ file: lastFile, hash: fileHash });
     } else {
       onUpload(undefined);
     }
@@ -91,6 +78,7 @@ export const FileUploader = ({ onUpload, title, accept = undefined }) => {
         headers: new Headers({ Authorization: `Bearer ${token}` }),
         body: acceptedFiles[acceptedFiles.length - 1],
       }).then((res) => res.json());
+      console.log(image);
       setFileHash(image.value.cid);
       setUploading(false);
     }
@@ -113,10 +101,10 @@ export const FileUploader = ({ onUpload, title, accept = undefined }) => {
         <Flex w="full" justifyContent="space-between">
           <Box>
             <Text>
-              <b>File:</b> {files[acceptedFiles.length - 1].path}{" "}
+              <b>File:</b> {lastFile?.path}{" "}
             </Text>
             <Text>
-              <b>Size:</b> {bytesToSize(files[acceptedFiles.length - 1].size)}
+              <b>Size:</b> {bytesToSize(lastFile?.size)}
             </Text>
             <Text>
               <b>Status:</b>{" "}
@@ -129,7 +117,7 @@ export const FileUploader = ({ onUpload, title, accept = undefined }) => {
               )}{" "}
             </Text>{" "}
           </Box>
-          <Image src={files[acceptedFiles.length - 1].preview} maxW={350} />
+          <Image src={lastFile?.preview} maxW={350} />
         </Flex>
       ) : (
         <Box

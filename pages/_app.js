@@ -1,8 +1,8 @@
-import { Web3Provider } from "../contexts/useWeb3"
-import { useWallet, UseWalletProvider } from "use-wallet"
-import { AlertProvider } from "../contexts/useAlerts"
-import { chainID } from "../utils/ethers"
-import { ChakraProvider, CSSReset, extendTheme } from "@chakra-ui/react"
+import { Web3Provider } from "../contexts/useWeb3";
+import { useWallet, UseWalletProvider } from "use-wallet";
+import { AlertProvider } from "../contexts/useAlerts";
+import { chainID, INFURA_API } from "../utils/ethers";
+import { ChakraProvider, CSSReset, extendTheme } from "@chakra-ui/react";
 
 const theme = {
   styles: {
@@ -11,24 +11,36 @@ const theme = {
         minHeight: "100vh",
         fontSize: "sm",
         color: "gray.600",
-        lineHeight: "tall"
+        lineHeight: "tall",
       },
       a: {
-        color: "teal.500"
-      }
-    }
+        color: "teal.500",
+      },
+    },
+  },
+};
+
+function getUrlFromChainId() {
+  if (chainID === 1) {
+    return `https://mainnet.infura.io/v3/${INFURA_API}`;
+  }
+  if (chainID === 4) {
+    return `https://rinkeby.infura.io/v3/${INFURA_API}`;
   }
 }
 
 export default function App({ Component, pageProps }) {
+  const rpcUrl = getUrlFromChainId(chainID);
+  console.log(rpcUrl);
+
   return (
     <ChakraProvider theme={extendTheme({ theme })}>
       <CSSReset />
       <UseWalletProvider
         chainId={chainID}
         connectors={{
-          walletconnect: { rpcUrl: "https://mainnet.eth.aragon.network/" },
-          walletlink: { url: "https://mainnet.eth.aragon.network/" }
+          walletconnect: { rpcUrl },
+          walletlink: { url: rpcUrl },
         }}
       >
         <AlertProvider>
@@ -38,5 +50,5 @@ export default function App({ Component, pageProps }) {
         </AlertProvider>
       </UseWalletProvider>
     </ChakraProvider>
-  )
+  );
 }

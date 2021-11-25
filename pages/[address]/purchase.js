@@ -13,12 +13,13 @@ import {
   StatGroup,
   StatLabel,
 } from "@chakra-ui/react";
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Page from "../../components/page";
 import { fetchCollectionAtAddress } from "../../utils/zora";
 import { ethers } from "ethers";
+import useAlerts from "../../contexts/useAlerts";
 import PurchaseHero from "../../components/purchase";
 import { useNFTIndexerQuery, NFTFetchConfiguration } from "@zoralabs/nft-hooks";
 import { chainID } from "../../utils/ethers";
@@ -29,14 +30,23 @@ const PurchaseList = ({ address }) => {
   const purchaseList = useNFTIndexerQuery({
     collectionAddresses: [address],
   });
-  const dateFormatter = new Intl.DateTimeFormat('en-US', {dateStyle: 'medium', timeStyle: 'short'});
+  const dateFormatter = new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
   return (
     <Box>
       <List>
         {purchaseList.results?.map((result) => (
           <ListItem key={result.mintTransferEvent.transactionHash}>
-            Minted by <em><AddressView address={result.minter} /></em> at{" "}
-            {dateFormatter.format(new Date(result.mintTransferEvent.blockTimestamp))}
+            Minted to{" "}
+            <em>
+              <AddressView address={result.minter} />
+            </em>{" "}
+            at{" "}
+            {dateFormatter.format(
+              new Date(result.mintTransferEvent.blockTimestamp)
+            )}
           </ListItem>
         ))}
       </List>
@@ -45,23 +55,30 @@ const PurchaseList = ({ address }) => {
 };
 
 const Purchase = () => {
-  const { account, networkId } = useWeb3();
+  const { account } = useWeb3();
+  const { watchTx } = useAlerts();
   const router = useRouter();
   const [collection, setCollection] = useState();
+  const fetchData = useCallback(async () => {
+    const data = await fetchCollectionAtAddress(router.query.address);
+    setCollection(data);
+  }, [fetchCollectionAtAddress, setCollection, router.query.address]);
 
   useEffect(async () => {
-    async function fetchData() {
-      const data = await fetchCollectionAtAddress(router.query.address);
-      setCollection(data);
-    }
     if (router.isReady) {
       fetchData();
     }
   }, [router]);
 
   const purchase = async () => {
-    await purchaseEdition(collection?.address, collection?.salePrice);
+    const response = await purchaseEdition(
+      collection?.address,
+      collection?.salePrice
+    );
+    watchTx(response.hash, "Purchasing Edition").then((data) => fetchData());
   };
+
+  const saleIsActive = collection?.salePrice.toString() !== "0";
 
   return (
     <Page>
@@ -74,7 +91,7 @@ const Purchase = () => {
         <Flex
           flexDirection="column"
           w="100%"
-          maxW={{ base: "100%", md: 1440 }}
+          // maxW={{ base: "100%", md: 1440 }}
           mt={4}
           alignItems="flex-start"
         >
@@ -86,8 +103,12 @@ const Purchase = () => {
             {collection && Card(collection, account)}
 
             <Box mt={8} mb={2}>
-              <Button onClick={() => purchase()} colorScheme="green">
-                Purchase one Edition
+              <Button
+                disabled={!saleIsActive}
+                onClick={() => purchase()}
+                colorScheme="green"
+              >
+                {saleIsActive ? "Purchase one Edition" : "Sale inactive"}
               </Button>
             </Box>
 
@@ -101,15 +122,16 @@ const Purchase = () => {
                 <StatLabel>Number of editions</StatLabel>
                 <StatNumber>{collection?.editionSize.toString()}</StatNumber>
               </Stat>
+            </StatGroup>
+            <StatGroup mb={10}>
 
               <Stat>
                 <StatLabel>Sale price</StatLabel>
                 <StatNumber>
                   {collection?.salePrice &&
                   collection?.salePrice.toString() !== "0"
-                    ? ethers.utils.formatEther(collection?.salePrice)
-                    : "Not for sale"}{" "}
-                  eth
+                    ? `${ethers.utils.formatEther(collection?.salePrice)} eth`
+                    : "Not for sale"}
                 </StatNumber>
               </Stat>
             </StatGroup>

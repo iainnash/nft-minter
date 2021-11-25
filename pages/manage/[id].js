@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Grid,
   Divider,
@@ -18,6 +18,7 @@ import { Alert, AlertIcon } from "@chakra-ui/alert";
 import { Button, IconButton } from "@chakra-ui/button";
 import { useColorModeValue } from "@chakra-ui/color-mode";
 import { useWeb3 } from "../../contexts/useWeb3";
+import useAlerts from "../../contexts/useAlerts";
 import {
   fetchCollection,
   setEditionSalesPrice,
@@ -59,6 +60,7 @@ export default function Manage() {
   const [price, setPrice] = useState();
   const { web3, connectWallet, disconnectWallet, account, balance } = useWeb3();
   const [collection, setCollection] = useState();
+  const { watchTx } = useAlerts();
 
   const [addressesMintBulk, setAddressesMintBulk] = useState("");
   const addressListCount = getAddressListCount(addressesMintBulk);
@@ -66,29 +68,48 @@ export default function Manage() {
     addressesMintBulk === 0 ||
     addressListCount < addressesMintBulk.split("\n").length;
 
-  useEffect(async () => {
+  const fetchCollectionHook = useCallback(async () => {
+    const data = await fetchCollection(router.query.id);
+    setCollection(data);
+  }, [setCollection, fetchCollection, router.query.id]);
+
+  useEffect(() => {
     if (router.isReady) {
-      const data = await fetchCollection(router.query.id);
-      setCollection(data);
+      fetchCollectionHook();
     }
   }, [router.isReady]);
   const cardBgColor = useColorModeValue("white", "gray.700");
 
   const setSalesPrice = async () => {
     const etherPrice = ethers.utils.parseEther(price);
-    await setEditionSalesPrice(collection.address, etherPrice);
+    const resp = await setEditionSalesPrice(collection.address, etherPrice);
+    watchTx(resp.hash, "Setting sales price").then((data) =>
+      fetchCollectionHook()
+    );
   };
 
   const stopSale = async () => {
-    await setEditionSalesPrice(collection.address, "0");
+    const resp = await setEditionSalesPrice(collection.address, "0");
+    watchTx(resp.hash, "Stopping sale").then((data) => {
+      fetchCollectionHook();
+    });
   };
 
   const mintBulk = async () => {
-    await mintBulkEditions(collection.address, addressesMintBulk.split("\n"));
+    const resp = await mintBulkEditions(
+      collection.address,
+      addressesMintBulk.split("\n")
+    );
+    watchTx(resp.hash, "Minting in bulk").then((data) => {
+      fetchCollectionHook();
+    });
   };
 
   const withdraw = async () => {
-    await withdrawMintFunds(collection.address);
+    const resp = await withdrawMintFunds(collection.address);
+    watchTx(resp.hash, "Withdrawing").then((data) => {
+      fetchCollectionHook();
+    });
   };
 
   const isOwner = collection?.owner === account;
@@ -139,9 +160,9 @@ export default function Manage() {
 
             <Box>
               Go to{" "}
-              <Link href={`/${collection?.address}/purchase`}>
+              <Button as="a" href={`/${collection?.address}/purchase`}>
                 purchase page
-              </Link>
+              </Button>
             </Box>
 
             {isOwner ? (

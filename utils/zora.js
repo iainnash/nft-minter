@@ -58,7 +58,7 @@ export const fetchCollectionAtAddress = async (address, chainId) => {
     nftContract.salePrice(),
     nftContract.editionSize(),
     nftContract.getURIs(),
-    chainId === 137 ? nftContract.editionSize() : nftContract.totalSupply(),
+    nftContract.totalSupply(),
     contractBalance,
   ];
   const [

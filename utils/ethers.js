@@ -2,15 +2,11 @@ import { ethers } from "ethers";
 // Set provider for pre-render operations where no wallet is present.
 // let provider = new ethers.providers.JsonRpcProvider(atob(ETH_NODE))
 
-export const chainID = process.env.NEXT_PUBLIC_CHAIN_ID
-  ? parseInt(process.env.NEXT_PUBLIC_CHAIN_ID)
-  : 4;
-console.log("Chain ID: ", chainID);
 export const INFURA_API = process.env.NEXT_PUBLIC_INFURA;
-export let web3 = new ethers.providers.InfuraProvider(
-  chainID === 1 ? "homestead" : "rinkeby",
-  INFURA_API
-);
+// let web3 = new ethers.providers.InfuraProvider(
+//   chainID === 1 ? "homestead" : "rinkeby",
+//   INFURA_API
+// );
 
 const MaxUint = ethers.constants.MaxUint256;
 export const zeroAddress = ethers.constants.AddressZero;

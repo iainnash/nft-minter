@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
   Grid,
   Divider,
@@ -24,6 +24,7 @@ import {
   setEditionSalesPrice,
   mintBulkEditions,
   withdrawMintFunds,
+  fetchCollectionAtAddress,
 } from "../../utils/zora";
 import { ethers, utils } from "ethers";
 
@@ -33,6 +34,7 @@ import Head from "next/head";
 import Page from "../../components/page";
 import Card from "../../components/card";
 import ManageHero from "../../components/manage";
+import { NetworkContext } from "../../contexts/NetworkContext";
 
 function isValidPrice(price) {
   try {
@@ -55,7 +57,7 @@ function getAddressListCount(addressesList) {
     }, 0);
 }
 
-export default function Manage() {
+export default function Manage({address}) {
   const router = useRouter();
   const [price, setPrice] = useState();
   const { web3, connectWallet, disconnectWallet, account, balance } = useWeb3();
@@ -68,10 +70,14 @@ export default function Manage() {
     addressesMintBulk === 0 ||
     addressListCount < addressesMintBulk.split("\n").length;
 
+  const { networkId } = useContext(NetworkContext);
+
   const fetchCollectionHook = useCallback(async () => {
-    const data = await fetchCollection(router.query.id);
-    setCollection(data);
-  }, [setCollection, fetchCollection, router.query.id]);
+    if (address) {
+      const data = await fetchCollectionAtAddress(address, networkId);
+      setCollection(data);
+    }
+  }, [address, setCollection, fetchCollection, router.query.id]);
 
   useEffect(() => {
     if (router.isReady) {
@@ -160,7 +166,7 @@ export default function Manage() {
 
             <Box>
               Go to{" "}
-              <Button as="a" href={`/${collection?.address}/purchase`}>
+              <Button as="a" href={`/${collection?.address}/purchase?network=${networkId}`}>
                 purchase page
               </Button>
             </Box>
@@ -328,4 +334,12 @@ export default function Manage() {
       </Center>
     </Page>
   );
+}
+
+export async function getServerSideProps({ query, req, res }) {
+  const network = query.network || "1";
+
+  return {
+    props: { network, networkId: parseInt(network, 10), address: query.address },
+  };
 }

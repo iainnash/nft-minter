@@ -1,8 +1,11 @@
 import { Web3Provider } from "../contexts/useWeb3";
 import { useWallet, UseWalletProvider } from "use-wallet";
+import { useState, useContext } from "react";
 import { AlertProvider } from "../contexts/useAlerts";
 import { chainID, INFURA_API } from "../utils/ethers";
 import { ChakraProvider, CSSReset, extendTheme } from "@chakra-ui/react";
+import { NetworkContext } from "../contexts/NetworkContext";
+import { getUrlFromChainId } from "../utils/getUrlChainId";
 
 const theme = {
   styles: {
@@ -20,35 +23,39 @@ const theme = {
   },
 };
 
-function getUrlFromChainId() {
-  if (chainID === 1) {
-    return `https://mainnet.infura.io/v3/${INFURA_API}`;
-  }
-  if (chainID === 4) {
-    return `https://rinkeby.infura.io/v3/${INFURA_API}`;
-  }
-}
+const AppWallet = ({ Component, pageProps }) => {
+  const { networkId } = useContext(NetworkContext);
+  const rpcUrl = getUrlFromChainId(networkId);
+  return (
+    <UseWalletProvider
+      chainId={networkId}
+      connectors={{
+        walletconnect: { rpcUrl },
+        walletlink: { url: rpcUrl },
+      }}
+    >
+      <AlertProvider>
+        <Web3Provider>
+          <Component {...pageProps} />
+        </Web3Provider>
+      </AlertProvider>
+    </UseWalletProvider>
+  );
+};
 
 export default function App({ Component, pageProps }) {
-  const rpcUrl = getUrlFromChainId(chainID);
-  console.log(rpcUrl);
+  const [networkId] = useState(pageProps.networkId || 1);
+
+  const setNetworkId = (newId) => {
+    window.location.href = `/?network=${newId}`;
+  };
 
   return (
-    <ChakraProvider theme={extendTheme({ theme })}>
-      <CSSReset />
-      <UseWalletProvider
-        chainId={chainID}
-        connectors={{
-          walletconnect: { rpcUrl },
-          walletlink: { url: rpcUrl },
-        }}
-      >
-        <AlertProvider>
-          <Web3Provider>
-            <Component {...pageProps} />
-          </Web3Provider>
-        </AlertProvider>
-      </UseWalletProvider>
-    </ChakraProvider>
+    <NetworkContext.Provider value={{ networkId, setNetworkId }}>
+      <ChakraProvider theme={extendTheme({ theme })}>
+        <CSSReset />
+        <AppWallet Component={Component} pageProps={pageProps} />
+      </ChakraProvider>
+    </NetworkContext.Provider>
   );
 }

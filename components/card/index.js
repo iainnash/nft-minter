@@ -4,7 +4,7 @@ import { useColorModeValue } from "@chakra-ui/color-mode";
 import { normalizeIpfsHash } from "../../utils/helpers";
 import useWeb3 from "../../contexts/useWeb3";
 
-const Card = (data, account) => {
+const Card = (data, account, networkId) => {
   const { name, symbol, address, editionSize, owner, URIs, id } = data;
 
   const content = (
@@ -66,12 +66,12 @@ const Card = (data, account) => {
     </Box>
   );
 
-  if (!id) {
-    return content;
-  }
+  // if (!id) {
+  //   return content;
+  // }
 
   return (
-    <Link sx={{ _hover: { textDecoration: "none" } }} href={`/manage/${id}`}>
+    <Link sx={{ _hover: { textDecoration: "none" } }} href={`/manage/${address}?network=${networkId}`}>
       {content}
     </Link>
   );

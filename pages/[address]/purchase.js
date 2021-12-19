@@ -25,6 +25,7 @@ import { useNFTIndexerQuery, NFTFetchConfiguration } from "@zoralabs/nft-hooks";
 import { chainID } from "../../utils/ethers";
 import { purchaseEdition } from "../../utils/zora";
 import { AddressView } from "../../components/address";
+import { NetworkContext } from "../../contexts/NetworkContext";
 
 const PurchaseList = ({ address }) => {
   const purchaseList = useNFTIndexerQuery({
@@ -59,8 +60,9 @@ const Purchase = () => {
   const { watchTx } = useAlerts();
   const router = useRouter();
   const [collection, setCollection] = useState();
+  const {networkId} = useContext(NetworkContext);
   const fetchData = useCallback(async () => {
-    const data = await fetchCollectionAtAddress(router.query.address);
+    const data = await fetchCollectionAtAddress(router.query.address, networkId);
     setCollection(data);
   }, [fetchCollectionAtAddress, setCollection, router.query.address]);
 
@@ -148,3 +150,12 @@ const Purchase = () => {
 };
 
 export default Purchase;
+
+
+export async function getServerSideProps({ query, req, res }) {
+  const network = query.network || '1';
+
+  return {
+    props: {network, networkId: parseInt(network, 10)},
+  }
+}

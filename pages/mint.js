@@ -33,16 +33,15 @@ import { useRouter } from "next/router";
 import { useDropzone } from "react-dropzone";
 import { bytesToSize } from "../utils/helpers";
 import { FileUploader } from "../components/fileuploader";
-  
 
 import Head from "next/head";
 import Page from "../components/page";
 import { generateSHA256FileHash } from "../utils/hash";
 
-export default function Home() {
+export default function Home({networkId}) {
   const router = useRouter();
   const { addAlert, watchTx } = useAlerts();
-  
+
   const cardBgColor = useColorModeValue("white", "gray.700");
 
   const [name, setName] = useState("");
@@ -61,19 +60,15 @@ export default function Home() {
 
   const mint = async () => {
     if (!imageFile) {
-      throw new Error('no image');
+      throw new Error("no image");
     }
-    console.log({imageFile, animationFile})
+    console.log({ imageFile, animationFile });
     const animURL = animationFile ? `ipfs://${animationFile.hash}` : "";
     const animHash = animationFile
-      ? await generateSHA256FileHash(
-          animationFile.file
-        )
+      ? await generateSHA256FileHash(animationFile.file)
       : "0x0000000000000000000000000000000000000000000000000000000000000000";
     const imgURL = `ipfs://${imageFile.hash}`;
-    const imgHash = await generateSHA256FileHash(
-     imageFile.file 
-    );
+    const imgHash = await generateSHA256FileHash(imageFile.file);
 
     console.log({
       animURL,
@@ -95,7 +90,9 @@ export default function Home() {
       edition,
       royalty: royalty * 1000,
     });
-    watchTx(response.hash, "Minting Editions").then((data) => router.push("/"));
+    watchTx(response.hash, "Minting Editions").then((data) =>
+      router.push(`/?networkId=${networkId}`)
+    );
   };
 
   return (
@@ -198,7 +195,7 @@ export default function Home() {
         <Flex mt="3" justifyContent="space-between">
           <Button
             isDisabled={validateInfo()}
-            onClick={() => mint()}
+            onClick={() => mint(networkId)}
             colorScheme="green"
           >
             Mint NFT Edition
@@ -207,4 +204,12 @@ export default function Home() {
       </Flex>
     </Page>
   );
+}
+
+export async function getServerSideProps({ query, req, res }) {
+  const network = query.network || "1";
+
+  return {
+    props: { network, networkId: parseInt(network, 10) },
+  };
 }

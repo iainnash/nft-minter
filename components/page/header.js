@@ -1,5 +1,5 @@
-import React from "react";
-import { Text, Heading, Center, Image } from "@chakra-ui/react";
+import React, { useContext } from "react";
+import { Text, Heading, Center, Image, Select } from "@chakra-ui/react";
 import { IconButton } from "@chakra-ui/button";
 import { FiSun, FiMoon } from "react-icons/fi";
 import { useColorMode, useColorModeValue } from "@chakra-ui/color-mode";
@@ -8,12 +8,13 @@ import { Box, Flex, LinkBox, LinkOverlay } from "@chakra-ui/layout";
 import { useWeb3 } from "../../contexts/useWeb3";
 import { useRouter } from "next/router";
 import UserAddress from "./wallet";
-import { chainID } from "../../utils/ethers";
+import { NetworkContext } from "../../contexts/NetworkContext";
 
 const Header = () => {
   const router = useRouter();
   const { account, balance } = useWeb3();
   const { colorMode, toggleColorMode } = useColorMode();
+  const {networkId} = useContext(NetworkContext);
 
   const isDarkMode = colorMode === "dark";
   const buttonHoverBgColor = useColorModeValue("gray.100", "gray.700");
@@ -28,10 +29,10 @@ const Header = () => {
         maxW={{ base: "100%", md: 1440 }}
       >
         {/* Hardcoded 283 for now to center user wallet component */}
-        <LinkBox width={["auto", "auto", 283]}>
+        <LinkBox width={["auto", "auto", 100]}>
           <LinkOverlay
             sx={{ cursor: "pointer" }}
-            onClick={() => router.push("/")}
+            onClick={() => router.push(`/?network=${networkId}`)}
           >
             <Flex alignItems="center">
               <Image src="/herb.png" w="30px" mr="1" />
@@ -40,8 +41,10 @@ const Header = () => {
                   color="gray.400"
                   sx={{ display: "inline", fontSize: "0.75em" }}
                 >
-                  {chainID === 1 && '[mainnet]'}
-                  {chainID === 4 && '[rinkeby]'}
+                  {networkId === 1 && '[mainnet]'}
+                  {networkId === 137 && '[polygon]'}
+                  {networkId === 80001 && '[mumbai]'}
+                  {networkId === 4 && '[rinkeby]'}
                 </Text>{" "}
                 Minter
               </Heading>

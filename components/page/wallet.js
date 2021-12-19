@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useContext, useEffect } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -6,24 +6,34 @@ import {
   ModalHeader,
   ModalBody,
   ModalCloseButton,
-  Image,
   Text,
+  Select,
   Box,
   Flex,
   Heading,
   useDisclosure,
-  Button
-} from "@chakra-ui/react"
-import { useWeb3 } from "../../contexts/useWeb3"
+  Button,
+} from "@chakra-ui/react";
+import { useWeb3 } from "../../contexts/useWeb3";
+import { NetworkContext } from "../../contexts/NetworkContext";
+import useAlerts from "../../contexts/useAlerts";
 
 export default function WalletModal() {
-  const { isOpen, onOpen, onClose } = useDisclosure()
-  const { connectWallet, disconnectWallet, account, status, balance } =
-    useWeb3()
+  const { networkId, setNetworkId } = useContext(NetworkContext);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { connectWallet, error, disconnectWallet, account, status, balance } =
+    useWeb3();
+
+    const {addAlert} = useAlerts();
+    useEffect(() => {
+      if (status === 'error') {
+        addAlert('error', 'err connecting wallet, please confirm correct network')
+      }
+    }, [status]);
 
   useEffect(() => {
-    if (account) onClose()
-  }, [account])
+    if (account) onClose();
+  }, [account]);
 
   return (
     <>
@@ -55,6 +65,19 @@ export default function WalletModal() {
           />
         )}
       </Button>
+      <Select
+        placeholder="Network"
+        size="md"
+        sx={{display: 'inline', width: 220, marginLeft: 4}}
+        display='inline'
+        onChange={(e) => setNetworkId(parseInt(e.target.value, 10))}
+        value={networkId}
+      >
+        <option value="1">mainnet ethereum</option>
+        <option value="4">rinkeby ethereum</option>
+        <option value="137">polygon</option>
+        <option value="80001">polygon mumbai testnet</option>
+      </Select>
 
       <Modal
         isOpen={isOpen}
@@ -86,7 +109,7 @@ export default function WalletModal() {
         </ModalContent>
       </Modal>
     </>
-  )
+  );
 }
 
 const WalletButton = ({ children, func }) => {
@@ -107,29 +130,29 @@ const WalletButton = ({ children, func }) => {
     >
       {children}
     </Flex>
-  )
-}
+  );
+};
 
 const CancelButton = ({
   fill = "#fff",
   width = "16px",
   height = "16px",
   margin = {},
-  handleClick
+  handleClick,
 }) => (
   <div
     onClick={handleClick}
     style={{
       border: "none",
       outline: "none",
-      ...(Object.keys(margin).length && { ...margin })
+      ...(Object.keys(margin).length && { ...margin }),
     }}
     className="reset"
   >
     <svg
       style={{
         cursor: "pointerEvent",
-        pointerEvents: "none"
+        pointerEvents: "none",
       }}
       width={width}
       height={height}
@@ -143,7 +166,7 @@ const CancelButton = ({
       />
     </svg>
   </div>
-)
+);
 
 const Metamask = ({ height = 33 }) => {
   return (
@@ -270,8 +293,8 @@ const Metamask = ({ height = 33 }) => {
         />
       </g>
     </svg>
-  )
-}
+  );
+};
 
 const WalletConnect = ({ height = 33 }) => {
   return (
@@ -291,5 +314,5 @@ const WalletConnect = ({ height = 33 }) => {
         </g>
       </g>
     </svg>
-  )
-}
+  );
+};

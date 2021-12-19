@@ -1,8 +1,11 @@
 import { Flex, Box, chakra, HStack, Button } from "@chakra-ui/react"
 import { useColorModeValue } from "@chakra-ui/color-mode"
 import { useRouter } from "next/router"
+import { useContext } from "react"
+import { NetworkContext } from "../../contexts/NetworkContext"
 const Hero = ({}) => {
   const router = useRouter()
+  const {networkId} = useContext(NetworkContext);
   return (
     <Box w={{ base: 8 / 12, xl: 5 / 12 }}>
       <chakra.p
@@ -38,7 +41,7 @@ const Hero = ({}) => {
           size="lg"
           mb={{ base: 2, sm: 0 }}
           cursor="pointer"
-          onClick={() => router.push("/mint")}
+          onClick={() => router.push(`/mint?network=${networkId}`)}
         >
           Mint an edition
         </Button>

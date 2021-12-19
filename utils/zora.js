@@ -1,30 +1,55 @@
 import { ethers, utils } from "ethers";
 import { Contract, Provider } from "ethers-multicall";
 import { zoraMinter, zoraNFT } from "../contracts";
-import { web3, chainID } from "./ethers";
+import { getUrlFromChainId } from "./getUrlChainId";
+import {web3 as web3Global}  from './ethers';
 
-export const fetchCollections = async () => {
-  const minter = new ethers.Contract(zoraMinter[chainID], zoraMinter.abi, web3);
-  const filter = minter.filters.CreatedEdition();
-  const ids = await minter.queryFilter(filter);
-  const collections = await Promise.all(
-    ids.map((item) => fetchCollection(item.args.editionId.toString()))
+export const fetchCollections = async (chainId) => {
+  const web3 = new ethers.providers.StaticJsonRpcProvider(
+    getUrlFromChainId(chainId),
+    chainId
   );
-  return collections;
+
+  const minter = new ethers.Contract(zoraMinter[chainId], zoraMinter.abi, web3);
+
+  const editions = [];
+  for (let i = 0; i < 100; i++) {
+    const edition = await minter.getEditionAtId(i);
+    console.log('has edition', edition)
+    try {
+
+    const editionPart = await fetchCollectionAtAddress(edition, chainId);
+    console.log({owner: editionPart.owner, i});
+    if (editionPart.owner === ethers.constants.AddressZero) {
+      console.log("stopping at ", i);
+      break;
+    }
+    editions.push(editionPart);
+    } catch (e) {
+      console.error(e);
+      break;
+    }
+  }
+  return editions;
 };
 
-export const fetchCollection = async (id) => {
-  const minter = new ethers.Contract(zoraMinter[chainID], zoraMinter.abi, web3);
+export const fetchCollection = async (id, chainId, web3) => {
+  const minter = new ethers.Contract(zoraMinter[chainId], zoraMinter.abi, web3);
   const address = await minter.getEditionAtId(id);
-  return {...(await fetchCollectionAtAddress(address)), id}
-}
+  return { ...(await fetchCollectionAtAddress(address, chainId)), id };
+};
 
-export const fetchCollectionAtAddress = async (address) => {
+export const fetchCollectionAtAddress = async (address, chainId) => {
+  console.log('fetchcollectionataddress', address, chainId);
+  const web3 = new ethers.providers.StaticJsonRpcProvider(
+    getUrlFromChainId(chainId),
+    chainId
+  );
   const ethcallProvider = new Provider(web3);
   await ethcallProvider.init();
   const nftContract = new Contract(address, zoraNFT.abi);
 
-  const contractBalance = ethcallProvider.getEthBalance(address)
+  const contractBalance = ethcallProvider.getEthBalance(address);
 
   const calls = [
     nftContract.name(),
@@ -33,11 +58,19 @@ export const fetchCollectionAtAddress = async (address) => {
     nftContract.salePrice(),
     nftContract.editionSize(),
     nftContract.getURIs(),
-    nftContract.totalSupply(),
+    chainId === 137 ? nftContract.editionSize() : nftContract.totalSupply(),
     contractBalance,
   ];
-  const [name, symbol, owner, salePrice, editionSize, URIs, numberMinted, balance] =
-    await ethcallProvider.all(calls);
+  const [
+    name,
+    symbol,
+    owner,
+    salePrice,
+    editionSize,
+    URIs,
+    numberMinted,
+    balance,
+  ] = await ethcallProvider.all(calls);
 
   return {
     name,
@@ -50,7 +83,7 @@ export const fetchCollectionAtAddress = async (address) => {
     address,
     balance: balance.toString(),
   };
-}
+};
 
 export const setEditionSalesPrice = async (address, price) => {
   const media = new ethers.Contract(address, zoraNFT.abi, web3.getSigner());
@@ -59,23 +92,23 @@ export const setEditionSalesPrice = async (address, price) => {
 
 export const purchaseEdition = async (address, price) => {
   const media = new ethers.Contract(address, zoraNFT.abi, web3.getSigner());
-  return await media.purchase({value: price});
-}
+  return await media.purchase({ value: price });
+};
 
 export const withdrawMintFunds = async (address) => {
   const media = new ethers.Contract(address, zoraNFT.abi, web3.getSigner());
   return await media.withdraw();
-}
+};
 
 export const mintBulkEditions = async (address, addresses) => {
   const media = new ethers.Contract(address, zoraNFT.abi, web3.getSigner());
   return await media.mintEditions(addresses);
-}
+};
 
 export const mintEdition = async (data) => {
-  const signer = web3.getSigner();
+  const signer = web3Global.getSigner();
   const minter = new ethers.Contract(
-    zoraMinter[chainID],
+    zoraMinter[(await web3Global.getNetwork()).chainId],
     zoraMinter.abi,
     signer
   );

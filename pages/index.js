@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Grid, Divider, Flex } from "@chakra-ui/react";
 import { Box, Heading, Text, Center, Link } from "@chakra-ui/layout";
 import { Alert } from "@chakra-ui/alert";
@@ -13,6 +13,7 @@ import Head from "next/head";
 import Page from "../components/page";
 import Card from "../components/card";
 import Hero from "../components/hero";
+import { NetworkContext } from "../contexts/NetworkContext";
 
 export default function Home({collections}) {
   const router = useRouter();
@@ -20,6 +21,8 @@ export default function Home({collections}) {
   // const [collections, setCollections] = useState([]);
   const cardBgColor = useColorModeValue("white", "gray.700");
   const alertBgColor = useColorModeValue("gray.50", "gray.600");
+
+  const {networkId} = useContext(NetworkContext);
 
   // useEffect(async () => {
   //   const data = await fetchCollections();
@@ -47,7 +50,7 @@ export default function Home({collections}) {
               Minted Editions
             </Heading>
             <Grid templateColumns="repeat(3, max(300px))" gridGap="4">
-              {collections[0] && collections.map((item) => Card(item, account))}
+              {collections[0] && collections.map((item) => Card(item, account, networkId))}
             </Grid>
           </Flex>
         </Flex>
@@ -56,13 +59,15 @@ export default function Home({collections}) {
   );
 }
 
-export async function getServerSideProps({ req, res }) {
+export async function getServerSideProps({ query, req, res }) {
   res.setHeader(
     'Cache-Control',
-    'public, s-maxage=120, stale-while-revalidate=129'
+    'public, s-maxage=250, stale-while-revalidate=129'
   )
 
+  const network = query.network || '1';
+
   return {
-    props: {collections: await fetchCollections()},
+    props: {network, networkId: parseInt(network, 10), collections: await fetchCollections(parseInt(network, 10))},
   }
 }

@@ -34,11 +34,11 @@ const AppWallet = ({ Component, pageProps }) => {
         walletlink: { url: rpcUrl },
       }}
     >
-      <AlertProvider>
-        <Web3Provider>
+      <Web3Provider>
+        <AlertProvider>
           <Component {...pageProps} />
-        </Web3Provider>
-      </AlertProvider>
+        </AlertProvider>
+      </Web3Provider>
     </UseWalletProvider>
   );
 };

@@ -57,12 +57,12 @@ function getAddressListCount(addressesList) {
     }, 0);
 }
 
-export default function Manage({address}) {
+export default function Manage({ address }) {
   const router = useRouter();
   const [price, setPrice] = useState();
   const { web3, connectWallet, web3Ethers, account, balance } = useWeb3();
   const [collection, setCollection] = useState();
-  const { watchTx } = useAlerts();
+  const { watchTx, addAlert } = useAlerts();
 
   const [addressesMintBulk, setAddressesMintBulk] = useState("");
   const addressListCount = getAddressListCount(addressesMintBulk);
@@ -87,38 +87,56 @@ export default function Manage({address}) {
   const cardBgColor = useColorModeValue("white", "gray.700");
 
   const setSalesPrice = async () => {
-    const etherPrice = ethers.utils.parseEther(price);
-    const resp = await setEditionSalesPrice(web3Ethers, collection.address, etherPrice);
-    watchTx(resp.hash, "Setting sales price").then((data) =>
-      fetchCollectionHook()
-    );
+    try {
+      const etherPrice = ethers.utils.parseEther(price);
+      const resp = await setEditionSalesPrice(web3Ethers, address, etherPrice);
+      watchTx(resp.hash, "Setting sales price").then((data) =>
+        fetchCollectionHook()
+      );
+    } catch (e) {
+      addAlert("error", e.toString());
+    }
   };
 
   const stopSale = async () => {
-    const resp = await setEditionSalesPrice(web3Ethers, collection.address, "0");
-    watchTx(resp.hash, "Stopping sale").then((data) => {
-      fetchCollectionHook();
-    });
+    try {
+      const resp = await setEditionSalesPrice(web3Ethers, address, "0");
+      watchTx(resp.hash, "Stopping sale").then((data) => {
+        fetchCollectionHook();
+      });
+    } catch (e) {
+      addAlert("error", e.toString());
+    }
   };
 
   const mintBulk = async () => {
-    const resp = await mintBulkEditions(
-      web3Ethers,
-      collection.address,
-      addressesMintBulk.split("\n")
-    );
-    watchTx(resp.hash, "Minting in bulk").then((data) => {
-      fetchCollectionHook();
-    });
+    try {
+      const resp = await mintBulkEditions(
+        web3Ethers,
+        address,
+        addressesMintBulk.split("\n")
+      );
+      watchTx(resp.hash, "Minting in bulk").then((data) => {
+        fetchCollectionHook();
+      });
+    } catch (e) {
+      console.log('error', e);
+      addAlert("error", e.toString());
+    }
   };
 
   const withdraw = async () => {
-    const resp = await withdrawMintFunds(web3Ethers, collection.address);
-    watchTx(resp.hash, "Withdrawing").then((data) => {
-      fetchCollectionHook();
-    });
+    try {
+      const resp = await withdrawMintFunds(web3Ethers, address);
+      watchTx(resp.hash, "Withdrawing").then((data) => {
+        fetchCollectionHook();
+      });
+    } catch (e) {
+      addAlert("error", e.toString());
+    }
   };
 
+  console.log({account, acct: collection?.owner})
   const isOwner = collection?.owner === account;
 
   return (
@@ -167,7 +185,7 @@ export default function Manage({address}) {
 
             <Box>
               Go to{" "}
-              <Button as="a" href={`/${collection?.address}/purchase?network=${networkId}`}>
+              <Button as="a" href={`/${address}/purchase?network=${networkId}`}>
                 purchase page
               </Button>
             </Box>
@@ -341,6 +359,10 @@ export async function getServerSideProps({ query, req, res }) {
   const network = query.network || "1";
 
   return {
-    props: { network, networkId: parseInt(network, 10), address: query.address },
+    props: {
+      network,
+      networkId: parseInt(network, 10),
+      address: query.address,
+    },
   };
 }

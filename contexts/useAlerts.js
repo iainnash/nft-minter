@@ -4,86 +4,87 @@ import React, {
   useContext,
   useMemo,
   useEffect,
-  useCallback
-} from "react"
+  useCallback,
+} from "react";
 
-import { web3 } from "../utils/ethers"
+import { useWeb3 } from "./useWeb3";
 
-export const UseAlertContext = createContext()
+export const UseAlertContext = createContext();
 
 export const AlertProvider = (props) => {
+  const { web3Ethers } = useWeb3();
   // Remember your alerts
-  const [alerts, setAlerts] = useState([])
+  const [alerts, setAlerts] = useState([]);
 
   // add - add alert
   const addAlert = (type, text) => {
-    const id = alerts.length
-    setAlerts([...alerts, { type, text }])
+    const id = alerts.length;
+    setAlerts([...alerts, { type, text }]);
     if (type != "pending") {
       setTimeout(() => {
-        removeAlert(id)
-      }, 10000)
+        removeAlert(id);
+      }, 10000);
     }
-    return id
-  }
+    return id;
+  };
   // remove - remove alerts (clear & rm on success fail)
   const removeAlert = (id) => {
     setTimeout(() => {
-      setAlerts(alerts.splice(id, 1))
-    }, 1000)
-  }
+      setAlerts(alerts.splice(id, 1));
+    }, 1000);
+  };
   // watchTx - listen for success/fail
   const watchTx = (hash, actionName) => {
-    const id = addAlert("pending", actionName)
+    const id = addAlert("pending", actionName);
     return new Promise((resolve, reject) => {
-      web3.once(hash, (transaction) => {
+      web3Ethers.once(hash, (transaction) => {
         setTimeout(() => {
-          removeAlert(id)
-        }, 3000)
+          removeAlert(id);
+        }, 3000);
         if (transaction.status === 1) {
-          addAlert("success", actionName)
-          resolve(transaction)
+          addAlert("success", actionName);
+          resolve(transaction);
         } else {
-          addAlert("fail", actionName)
-          reject(transaction)
+          addAlert("fail", actionName);
+          reject(transaction);
         }
-      })
-    })
-  }
+      });
+    });
+  };
 
   const tools = useMemo(
     () => ({
       alerts,
       addAlert,
       removeAlert,
-      watchTx
+      watchTx,
     }),
-    [alerts]
-  )
+    [alerts, web3Ethers]
+  );
 
   // pass the value in provider and return
   return (
     <UseAlertContext.Provider
       value={{
-        tools
+        tools,
       }}
     >
       {props.children}
     </UseAlertContext.Provider>
-  )
-}
+  );
+};
 
 export function useAlerts() {
-  const alertContext = useContext(UseAlertContext)
+  const alertContext = useContext(UseAlertContext);
   if (alertContext === null) {
     throw new Error(
       "useAlert() can only be used inside of <UseAlertProvider />, " +
         "please declare it at a higher level."
-    )
+    );
   }
-  const { tools } = alertContext
+  const { tools } = alertContext;
 
-  return useMemo(() => ({ ...tools }), [tools])
+  return useMemo(() => ({ ...tools }), [tools]);
 }
 
-export default useAlerts
+export default useAlerts;

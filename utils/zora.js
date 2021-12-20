@@ -2,7 +2,7 @@ import { ethers, utils } from "ethers";
 import { Contract, Provider } from "ethers-multicall";
 import { zoraMinter, zoraNFT } from "../contracts";
 import { getUrlFromChainId } from "./getUrlChainId";
-import {web3 as web3Global}  from './ethers';
+import { web3 as web3Global } from "./ethers";
 
 export const fetchCollections = async (chainId) => {
   const web3 = new ethers.providers.StaticJsonRpcProvider(
@@ -15,16 +15,15 @@ export const fetchCollections = async (chainId) => {
   const editions = [];
   for (let i = 0; i < 100; i++) {
     const edition = await minter.getEditionAtId(i);
-    console.log('has edition', edition)
+    // console.log('has edition', edition)
     try {
-
-    const editionPart = await fetchCollectionAtAddress(edition, chainId);
-    console.log({owner: editionPart.owner, i});
-    if (editionPart.owner === ethers.constants.AddressZero) {
-      console.log("stopping at ", i);
-      break;
-    }
-    editions.push(editionPart);
+      const editionPart = await fetchCollectionAtAddress(edition, chainId);
+      console.log({ owner: editionPart.owner, i });
+      if (editionPart.owner === ethers.constants.AddressZero) {
+        console.log("stopping at ", i);
+        break;
+      }
+      editions.push(editionPart);
     } catch (e) {
       console.error(e);
       break;
@@ -40,7 +39,6 @@ export const fetchCollection = async (id, chainId, web3) => {
 };
 
 export const fetchCollectionAtAddress = async (address, chainId) => {
-  console.log('fetchcollectionataddress', address, chainId);
   const web3 = new ethers.providers.StaticJsonRpcProvider(
     getUrlFromChainId(chainId),
     chainId

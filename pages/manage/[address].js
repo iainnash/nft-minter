@@ -60,7 +60,7 @@ function getAddressListCount(addressesList) {
 export default function Manage({address}) {
   const router = useRouter();
   const [price, setPrice] = useState();
-  const { web3, connectWallet, disconnectWallet, account, balance } = useWeb3();
+  const { web3, connectWallet, web3Ethers, account, balance } = useWeb3();
   const [collection, setCollection] = useState();
   const { watchTx } = useAlerts();
 
@@ -88,14 +88,14 @@ export default function Manage({address}) {
 
   const setSalesPrice = async () => {
     const etherPrice = ethers.utils.parseEther(price);
-    const resp = await setEditionSalesPrice(collection.address, etherPrice);
+    const resp = await setEditionSalesPrice(web3Ethers, collection.address, etherPrice);
     watchTx(resp.hash, "Setting sales price").then((data) =>
       fetchCollectionHook()
     );
   };
 
   const stopSale = async () => {
-    const resp = await setEditionSalesPrice(collection.address, "0");
+    const resp = await setEditionSalesPrice(web3Ethers, collection.address, "0");
     watchTx(resp.hash, "Stopping sale").then((data) => {
       fetchCollectionHook();
     });
@@ -103,6 +103,7 @@ export default function Manage({address}) {
 
   const mintBulk = async () => {
     const resp = await mintBulkEditions(
+      web3Ethers,
       collection.address,
       addressesMintBulk.split("\n")
     );
@@ -112,7 +113,7 @@ export default function Manage({address}) {
   };
 
   const withdraw = async () => {
-    const resp = await withdrawMintFunds(collection.address);
+    const resp = await withdrawMintFunds(web3Ethers, collection.address);
     watchTx(resp.hash, "Withdrawing").then((data) => {
       fetchCollectionHook();
     });

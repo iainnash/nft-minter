@@ -41,6 +41,7 @@ import { generateSHA256FileHash } from "../utils/hash";
 export default function Home({networkId}) {
   const router = useRouter();
   const { addAlert, watchTx } = useAlerts();
+  const {web3Ethers} = useWeb3();
 
   const cardBgColor = useColorModeValue("white", "gray.700");
 
@@ -79,7 +80,7 @@ export default function Home({networkId}) {
       edition,
     });
 
-    const response = await mintEdition({
+    const response = await mintEdition(web3Ethers, {
       name,
       symbol,
       desc,

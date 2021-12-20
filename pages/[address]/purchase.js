@@ -56,7 +56,7 @@ const PurchaseList = ({ address }) => {
 };
 
 const Purchase = () => {
-  const { account } = useWeb3();
+  const { account, web3Ethers } = useWeb3();
   const { watchTx } = useAlerts();
   const router = useRouter();
   const [collection, setCollection] = useState();
@@ -74,6 +74,7 @@ const Purchase = () => {
 
   const purchase = async () => {
     const response = await purchaseEdition(
+      web3Ethers,
       collection?.address,
       collection?.salePrice
     );

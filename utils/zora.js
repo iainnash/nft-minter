@@ -85,30 +85,30 @@ export const fetchCollectionAtAddress = async (address, chainId) => {
   };
 };
 
-export const setEditionSalesPrice = async (address, price) => {
+export const setEditionSalesPrice = async (web3, address, price) => {
   const media = new ethers.Contract(address, zoraNFT.abi, web3.getSigner());
   return await media.setSalePrice(price);
 };
 
-export const purchaseEdition = async (address, price) => {
+export const purchaseEdition = async (web3, address, price) => {
   const media = new ethers.Contract(address, zoraNFT.abi, web3.getSigner());
   return await media.purchase({ value: price });
 };
 
-export const withdrawMintFunds = async (address) => {
+export const withdrawMintFunds = async (web3, address) => {
   const media = new ethers.Contract(address, zoraNFT.abi, web3.getSigner());
   return await media.withdraw();
 };
 
-export const mintBulkEditions = async (address, addresses) => {
+export const mintBulkEditions = async (web3, address, addresses) => {
   const media = new ethers.Contract(address, zoraNFT.abi, web3.getSigner());
   return await media.mintEditions(addresses);
 };
 
-export const mintEdition = async (data) => {
-  const signer = web3Global.getSigner();
+export const mintEdition = async (web3, data) => {
+  const signer = web3.getSigner();
   const minter = new ethers.Contract(
-    zoraMinter[(await web3Global.getNetwork()).chainId],
+    zoraMinter[(await web3.getNetwork()).chainId],
     zoraMinter.abi,
     signer
   );

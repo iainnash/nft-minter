@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 // let provider = new ethers.providers.JsonRpcProvider(atob(ETH_NODE))
 
 export const INFURA_API = process.env.NEXT_PUBLIC_INFURA;
+let web3;
 // let web3 = new ethers.providers.InfuraProvider(
 //   chainID === 1 ? "homestead" : "rinkeby",
 //   INFURA_API

@@ -15,7 +15,7 @@ import { useAlerts } from "../contexts/useAlerts";
 import { useDropzone } from "react-dropzone";
 import { bytesToSize } from "../utils/helpers";
 
-export const FileUploader = ({ onUpload, title, accept = undefined }) => {
+export const FileUploader = ({ onUpload, title, description, accept = undefined }) => {
   const token = process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN;
   const cardBgColor = useColorModeValue("white", "gray.700");
 
@@ -87,7 +87,10 @@ export const FileUploader = ({ onUpload, title, accept = undefined }) => {
   return (
     <Box mt="5" w="100%" bg={cardBgColor} shadow="xl" borderRadius="2xl" p={8}>
       <Flex alignItems="center" justifyContent="space-between" mb="2">
-        <Heading size="md">{title}</Heading>
+        <div>
+          <Heading size="md">{title}</Heading>
+          {description && <Text>{description}</Text>}
+        </div>
         {uploading || fileHash ? (
           <CloseButton
             onClick={() => {

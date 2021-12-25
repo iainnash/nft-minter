@@ -191,8 +191,8 @@ export default function Home({networkId}) {
             </NumberInput>
           </FormControl>
         </Box>
-        <FileUploader title="Image" accept="image/*" onUpload={setImageFile} />
-        <FileUploader title="Animation" onUpload={setAnimationFile} />
+        <FileUploader description="An image or image preview of the NFT. Needs to be an image file type and should be added to all NFTs." title="Image" accept="image/*" onUpload={setImageFile} />
+        <FileUploader description="Optional: Add your media file here for the NFT: mp3 or wav audio file, mp4 or mov video file, 3d gltf file, and html webpages are supported." title="Animation" onUpload={setAnimationFile} />
         <Flex mt="3" justifyContent="space-between">
           <Button
             isDisabled={validateInfo()}

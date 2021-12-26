@@ -51,7 +51,7 @@ export const FileUploader = ({
   const [urlMode, setUrlMode] = useState(false);
 
   useEffect(() => {
-    if (files[files.length - 1]) {
+    if (fileUrl) {
       onUpload({ file: lastFile, url: fileUrl });
     } else {
       onUpload(undefined);
@@ -88,7 +88,7 @@ export const FileUploader = ({
         body: acceptedFiles[acceptedFiles.length - 1],
       }).then((res) => res.json());
       console.log(fileUrl);
-      setFileUrl(image.value.cid);
+      setFileUrl(`ipfs://${image.value.cid}`);
       setUploading(false);
     }
   }, [acceptedFiles]);
@@ -103,7 +103,7 @@ export const FileUploader = ({
         {uploading || fileUrl ? (
           <CloseButton
             onClick={() => {
-              fileUrl([]);
+              setFiles([]);
               setFileUrl(undefined);
             }}
           />

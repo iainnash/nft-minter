@@ -38,10 +38,10 @@ import Head from "next/head";
 import Page from "../components/page";
 import { generateSHA256FileHash } from "../utils/hash";
 
-export default function Home({networkId}) {
+export default function Home({ networkId }) {
   const router = useRouter();
   const { addAlert, watchTx } = useAlerts();
-  const {web3Ethers} = useWeb3();
+  const { web3Ethers } = useWeb3();
 
   const cardBgColor = useColorModeValue("white", "gray.700");
 
@@ -64,12 +64,15 @@ export default function Home({networkId}) {
       throw new Error("no image");
     }
     console.log({ imageFile, animationFile });
-    const animURL = animationFile ? `ipfs://${animationFile.hash}` : "";
-    const animHash = animationFile
-      ? await generateSHA256FileHash(animationFile.file)
+    const animURL = animationFile ? animationFile.url : "";
+    const animHash =
+      animationFile && animationFile.file
+        ? await generateSHA256FileHash(animationFile.file)
+        : "0x0000000000000000000000000000000000000000000000000000000000000000";
+    const imgURL = imageFile.url;
+    const imgHash = imageFile.file
+      ? await generateSHA256FileHash(imageFile.file)
       : "0x0000000000000000000000000000000000000000000000000000000000000000";
-    const imgURL = `ipfs://${imageFile.hash}`;
-    const imgHash = await generateSHA256FileHash(imageFile.file);
 
     console.log({
       animURL,
@@ -191,8 +194,17 @@ export default function Home({networkId}) {
             </NumberInput>
           </FormControl>
         </Box>
-        <FileUploader description="An image or image preview of the NFT. Needs to be an image file type and should be added to all NFTs." title="Image" accept="image/*" onUpload={setImageFile} />
-        <FileUploader description="Optional: Add your media file here for the NFT: mp3 or wav audio file, mp4 or mov video file, 3d gltf file, and html webpages are supported." title="Animation" onUpload={setAnimationFile} />
+        <FileUploader
+          description="An image or image preview of the NFT. Needs to be an image file type and should be added to all NFTs."
+          title="Image"
+          accept="image/*"
+          onUpload={setImageFile}
+        />
+        <FileUploader
+          description="Optional: Add your media file here for the NFT: mp3 or wav audio file, mp4 or mov video file, 3d gltf file, and html webpages are supported."
+          title="Animation"
+          onUpload={setAnimationFile}
+        />
         <Flex mt="3" justifyContent="space-between">
           <Button
             isDisabled={validateInfo()}

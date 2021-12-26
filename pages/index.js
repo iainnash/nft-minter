@@ -62,7 +62,7 @@ export default function Home({collections}) {
 export async function getServerSideProps({ query, req, res }) {
   res.setHeader(
     'Cache-Control',
-    'public, s-maxage=250, stale-while-revalidate=129'
+    'public, s-maxage=100, stale-while-revalidate=20'
   )
 
   const network = query.network || '1';

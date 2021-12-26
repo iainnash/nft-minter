@@ -95,7 +95,7 @@ export default function Home({ networkId }) {
       royalty: royalty * 1000,
     });
     watchTx(response.hash, "Minting Editions").then((data) =>
-      router.push(`/?networkId=${networkId}`)
+      router.push(`/?network=${networkId}`)
     );
   };
 

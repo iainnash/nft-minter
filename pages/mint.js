@@ -21,22 +21,22 @@ import {
   NumberInputField,
   NumberInputStepper,
   FormLabel,
-  Link,
 } from "@chakra-ui/react";
-import { ExternalLinkIcon } from "@chakra-ui/icons";
 import { useColorModeValue } from "@chakra-ui/color-mode";
 import { useWeb3 } from "../contexts/useWeb3";
 import { mintEdition } from "../utils/zora";
 
 import { useAlerts } from "../contexts/useAlerts";
 import { useRouter } from "next/router";
-import { useDropzone } from "react-dropzone";
-import { bytesToSize } from "../utils/helpers";
 import { FileUploader } from "../components/fileuploader";
 
 import Head from "next/head";
 import Page from "../components/page";
 import { generateSHA256FileHash } from "../utils/hash";
+
+function escapeJsonString(json) {
+  return JSON.stringify(json).slice(1, -1);
+}
 
 export default function Home({ networkId }) {
   const router = useRouter();
@@ -84,9 +84,9 @@ export default function Home({ networkId }) {
     });
 
     const response = await mintEdition(web3Ethers, {
-      name,
+      name: escapeJsonString(name),
       symbol,
-      desc,
+      desc: escapeJsonString(desc),
       animURL,
       animHash,
       imgURL,

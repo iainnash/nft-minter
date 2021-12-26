@@ -3,7 +3,9 @@ import {
   Flex,
   Box,
   Heading,
+  Input,
   Text,
+  Button,
   Image,
   CloseButton,
   Link,
@@ -15,7 +17,12 @@ import { useAlerts } from "../contexts/useAlerts";
 import { useDropzone } from "react-dropzone";
 import { bytesToSize } from "../utils/helpers";
 
-export const FileUploader = ({ onUpload, title, description, accept = undefined }) => {
+export const FileUploader = ({
+  onUpload,
+  title,
+  description,
+  accept = undefined,
+}) => {
   const token = process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN;
   const cardBgColor = useColorModeValue("white", "gray.700");
 
@@ -35,19 +42,21 @@ export const FileUploader = ({ onUpload, title, description, accept = undefined 
     });
 
   const { addAlert, watchTx } = useAlerts();
-  const [fileHash, setFileHash] = useState();
+  const [fileUrl, setFileUrl] = useState();
   const [uploading, setUploading] = useState();
   const [files, setFiles] = useState([]);
 
   const lastFile = files[acceptedFiles.length - 1];
 
+  const [urlMode, setUrlMode] = useState(false);
+
   useEffect(() => {
     if (files[files.length - 1]) {
-      onUpload({ file: lastFile, hash: fileHash });
+      onUpload({ file: lastFile, url: fileUrl });
     } else {
       onUpload(undefined);
     }
-  }, [files, fileHash]);
+  }, [files, fileUrl]);
 
   useEffect(
     () => () => {
@@ -78,8 +87,8 @@ export const FileUploader = ({ onUpload, title, description, accept = undefined 
         headers: new Headers({ Authorization: `Bearer ${token}` }),
         body: acceptedFiles[acceptedFiles.length - 1],
       }).then((res) => res.json());
-      console.log(image);
-      setFileHash(image.value.cid);
+      console.log(fileUrl);
+      setFileUrl(image.value.cid);
       setUploading(false);
     }
   }, [acceptedFiles]);
@@ -91,16 +100,41 @@ export const FileUploader = ({ onUpload, title, description, accept = undefined 
           <Heading size="md">{title}</Heading>
           {description && <Text>{description}</Text>}
         </div>
-        {uploading || fileHash ? (
+        {uploading || fileUrl ? (
           <CloseButton
             onClick={() => {
-              setFiles([]);
-              setFileHash(undefined);
+              fileUrl([]);
+              setFileUrl(undefined);
             }}
           />
         ) : null}
       </Flex>
-      {uploading || fileHash ? (
+      {urlMode && (
+        <Box>
+          <label style={{ marginBottom: 10 }}>
+            <Text>URL to File</Text>
+            <Input
+              placeholder="URL to file"
+              onChange={(e) => setFileUrl(e.target.value)}
+              value={fileUrl}
+            />
+          </label>
+          {accept?.startsWith("image") && <Image src={fileUrl} maxW={350} />}
+          <div style={{ marginTop: 20 }}>
+            <Button
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setUrlMode(false);
+              }}
+            >
+              Upload a file (&lt; 100mb) instead
+            </Button>
+          </div>
+        </Box>
+      )}
+      {!urlMode && (uploading || fileUrl) ? (
         <Flex w="full" justifyContent="space-between">
           <Box>
             <Text>
@@ -114,38 +148,59 @@ export const FileUploader = ({ onUpload, title, description, accept = undefined 
               {uploading ? (
                 "Uploading..."
               ) : (
-                <Link href={`https://${fileHash}.ipfs.dweb.link/`} isExternal>
+                <Link
+                  href={fileUrl.replace("ipfs://", "https://ipfs.io/ipfs/")}
+                  isExternal
+                >
                   Uploaded <ExternalLinkIcon mx="2px" />
                 </Link>
               )}{" "}
             </Text>{" "}
           </Box>
-          <Image src={lastFile?.preview} maxW={350} />
+          {accept?.startsWith("image") && (
+            <Image src={lastFile?.preview} maxW={350} />
+          )}
         </Flex>
       ) : (
-        <Box
-          as={"div"}
-          w="100%"
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            padding: "60px 20px",
-            borderWidth: 2,
-            borderRadius: 2,
-            borderColor: "#eeeeee",
-            borderStyle: "dashed",
-            backgroundColor: "#fafafa",
-            color: "#bdbdbd",
-            outline: "none",
-            transition: "border .24s ease-in-out",
-          }}
-          {...getRootProps({ className: "dropzone" })}
-        >
-          <input {...getInputProps()} />
-          <p>{`Drag 'n' drop a file here, or click to select a file`}</p>
-        </Box>
+        !urlMode && (
+          <Box
+            as={"div"}
+            w="100%"
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              padding: "60px 20px",
+              borderWidth: 2,
+              borderRadius: 2,
+              borderColor: "#eeeeee",
+              borderStyle: "dashed",
+              backgroundColor: "#fafafa",
+              color: "#bdbdbd",
+              outline: "none",
+              transition: "border .24s ease-in-out",
+            }}
+            {...getRootProps({ className: "dropzone" })}
+          >
+            <input {...getInputProps()} />
+            <p>{`Drag 'n' drop a file here, or click to select a file`}</p>
+            <br />
+            <br />
+            <p>
+              <Button
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setUrlMode(true);
+                }}
+              >
+                Use a URL instead
+              </Button>
+            </p>
+          </Box>
+        )
       )}
     </Box>
   );

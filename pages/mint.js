@@ -65,7 +65,7 @@ export default function Home({networkId}) {
     }
     console.log({ imageFile, animationFile });
     const animURL = animationFile ? `ipfs://${animationFile.hash}` : "";
-    const animHash = animationFile
+    const animHash = animationFile && animationFile.file
       ? await generateSHA256FileHash(animationFile.file)
       : "0x0000000000000000000000000000000000000000000000000000000000000000";
     const imgURL = `ipfs://${imageFile.hash}`;

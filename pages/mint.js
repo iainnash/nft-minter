@@ -92,7 +92,7 @@ export default function Home({ networkId }) {
       imgURL,
       imgHash,
       edition,
-      royalty: royalty * 1000,
+      royalty: royalty * 100,
     });
     watchTx(response.hash, "Minting Editions").then((data) =>
       router.push(`/?network=${networkId}`)

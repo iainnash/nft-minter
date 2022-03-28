@@ -13,7 +13,7 @@ import {
   StatGroup,
   StatLabel,
 } from "@chakra-ui/react";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useContext, useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Page from "../../components/page";
@@ -82,6 +82,7 @@ const Purchase = () => {
   };
 
   const saleIsActive = collection?.salePrice.toString() !== "0";
+  const numberLeft = collection?.editionSize - collection?.numberMinted;
 
   return (
     <Page>
@@ -107,11 +108,11 @@ const Purchase = () => {
 
             <Box mt={8} mb={2}>
               <Button
-                disabled={!saleIsActive}
+                disabled={!saleIsActive || numberLeft === 0}
                 onClick={() => purchase()}
                 colorScheme="green"
               >
-                {saleIsActive ? "Purchase one Edition" : "Sale inactive"}
+                {saleIsActive ? numberLeft === 0 ? "Sold out" : "Purchase one edition" : "Sale inactive"}
               </Button>
             </Box>
 
@@ -139,9 +140,9 @@ const Purchase = () => {
               </Stat>
             </StatGroup>
             <NFTFetchConfiguration networkId={chainID}>
-              {collection?.address && (
-                <PurchaseList address={collection.address} />
-              )}
+              {/* {collection?.address && (
+                <PurchaseList address={ethers.utils.getAddress(collection.address)} />
+              )} */}
             </NFTFetchConfiguration>
           </Flex>
         </Flex>
